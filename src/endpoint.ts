@@ -24,7 +24,7 @@ export default class Endpoint {
         method: 'GET',
         url: `/good/api/v5/data/${this.name}/${name}`,
         baseURL: `${this.config.apiHost}`,
-        params: this.config,
+        params: { ...this.config, ...params },
         ...options,
       })
       .then(extractResponseData);
