@@ -1,0 +1,21 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+# See https://www.atlassian.com/git/tutorials/gitignore for examples.
+# see https://git-scm.com/docs/gitignore for manual.
+
+# Editor
+.idea/
+
+# Dependencies
+node_modules/
+
+# Testing
+coverage/
+
+# Production
+lib/
+
+# Logs
+*.log
+
+# Misc
+.DS_Store
