@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "outDir": "lib",
+    "sourceMap": true,
+    "declaration": true,
+    "module": "commonjs",
+    "removeComments": false,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "pretty": true,
+    "diagnostics": true,
+    "lib": [
+      "ES2017",
+      "DOM"
+    ]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

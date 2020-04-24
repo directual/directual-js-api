@@ -1,0 +1,51 @@
+{
+  "name": "directual-api",
+  "version": "1.0.0",
+  "description": "Directual SDK for JavaScript",
+  "main": "lib/directual.js",
+  "typings": "lib/directual.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "prebuild": "rm -rf lib",
+    "build": "tsc",
+    "bump:minor": "npm version minor",
+    "bump:patch": "npm version patch",
+    "bump:prerelease": "npm version prerelease",
+    "prepublishOnly": "npm run build",
+    "precommit": "lint-staged",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/directual/directual-sdk-js.git"
+  },
+  "keywords": [
+    "directual",
+    "sdk"
+  ],
+  "author": "Navalikhin Nikita <nikita@directual.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/directual/directual-sdk-js/issues"
+  },
+  "homepage": "https://github.com/directual/directual-sdk-js#readme",
+  "devDependencies": {
+    "husky": "^0.14.3",
+    "lint-staged": "10.1.7",
+    "prettier": "1.11.1",
+    "typescript": "2.7.2"
+  },
+  "dependencies": {
+    "@types/lodash": "4.14.104",
+    "axios": "0.18.0",
+    "lodash": "4.17.5"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "git add"
+    ]
+  }
+}
