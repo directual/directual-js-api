@@ -1,4 +1,4 @@
-# directual-sdk-js
+# directual-js-api
 The Directual Web Library serves as the base JavaScript library for Directual based projects.  
 https://directual.com/
 

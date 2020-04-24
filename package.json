@@ -1,7 +1,7 @@
 {
   "name": "directual-api",
   "version": "1.0.0",
-  "description": "Directual SDK for JavaScript",
+  "description": "Directual API for JavaScript",
   "main": "lib/directual.js",
   "typings": "lib/directual.d.ts",
   "files": [
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/directual/directual-sdk-js.git"
+    "url": "git+https://github.com/directual/directual-js-api.git"
   },
   "keywords": [
     "directual",
@@ -28,9 +28,9 @@
   "author": "Navalikhin Nikita <nikita@directual.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/directual/directual-sdk-js/issues"
+    "url": "https://github.com/directual/directual-js-api/issues"
   },
-  "homepage": "https://github.com/directual/directual-sdk-js#readme",
+  "homepage": "https://github.com/directual/directual-js-api#readme",
   "devDependencies": {
     "husky": "^0.14.3",
     "lint-staged": "10.1.7",
