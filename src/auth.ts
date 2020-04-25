@@ -26,6 +26,10 @@ export class Auth {
     this.config = config;
   }
 
+  isAuthenticated(): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
   isAuthorize(cb: (isAuth: Boolean, token?: Token) => boolean): void {
     this.check('')
       .then(res => {
