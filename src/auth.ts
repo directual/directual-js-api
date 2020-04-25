@@ -40,7 +40,7 @@ export class Auth {
     return axiosInstance
       .request({
         method: 'POST',
-        url: `/good/api/v4/auth`,
+        url: `/good/api/v5/auth`,
         baseURL: `${this.config.apiHost}`,
         params: { ...this.config },
         data: {
