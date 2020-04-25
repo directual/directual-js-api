@@ -31,13 +31,9 @@ export class Auth {
   }
 
   isAuthorize(cb: (isAuth: Boolean, token?: Token) => boolean): void {
-    this.check('')
-      .then(res => {
-        cb(false);
-      })
-      .catch(e => {
-        cb(false);
-      });
+    this.check('').then(res => {
+      cb(res.result, res.token);
+    });
   }
 
   login(login: String, pass: String): Promise<Token> {
@@ -88,7 +84,7 @@ export class Auth {
         params: { ...this.config, sessionID },
       })
       .then(result => {
-        return Promise.resolve(false);
+        return Promise.resolve(result.data.result);
       });
   }
 }
