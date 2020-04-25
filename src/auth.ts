@@ -56,7 +56,7 @@ export class Auth {
       })
       .then(result => {
         if (result.status == 200 && result.statusText === 'OK' && result.data) {
-          let token = new Token(result.data.token, result.data.username);
+          let token = new Token(result.data.result.token, result.data.result.username);
           return Promise.resolve(token);
         }
         return Promise.reject(new Error('No reason but to reject'));
