@@ -1,10 +1,29 @@
 const Directual = require('../../lib/directual')
 
 const config = {
-  appID: '49f30984-cfba-43cb-8803-958b54f7e374',
-  apiHost: 'http://localhost:8081'
+  appID: '050e77bb-b0e6-4685-8712-a85774fad272',
+  apiHost: 'http://localhost:8081', // custom server api
+  sessionKey: 'sessionID' // custom server api
 }
 const api = new Directual.default(config)
+
+//if you api endpoint requried autorisation, first of all, you must get sessionID key
+
+api.auth.isAuthorize((isAuth, sessionID)=>{
+  if(isAuth){
+    console.log("sessionID")
+  }else{
+    api.auth.login("test", "test").then((res)=>{
+      console.log("sessionID" + res.sessionID)
+      api.auth.isAuthorize(()=>{
+        console.log('ok')
+      })
+      //api.auth.logout(res.sessionID)
+    }).catch((err)=>{
+      console.log('login or password invalid')
+    })
+  }
+})
 
 //example read data from API-endpoint with name `test` from structure UsageHistory
 api
