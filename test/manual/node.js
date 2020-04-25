@@ -9,7 +9,7 @@ const api = new Directual.default(config)
 
 //if you api endpoint requried autorisation, first of all, you must get sessionID key
 
-api.auth.isAuthorize((isAuth, sessionID)=>{
+api.auth.isAuthorize('',(isAuth, sessionID)=>{
   if(isAuth){
     console.log("sessionID")
   }else{
