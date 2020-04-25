@@ -30,8 +30,8 @@ export class Auth {
     return Promise.resolve(false);
   }
 
-  isAuthorize(cb: (isAuth: Boolean, token?: Token) => boolean): void {
-    this.check('').then(res => {
+  isAuthorize(sid: string, cb: (isAuth: Boolean, token?: Token) => boolean): void {
+    this.check(sid).then(res => {
       cb(res.result, res.token);
     });
   }
