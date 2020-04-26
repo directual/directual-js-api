@@ -22,10 +22,16 @@ const config = {
 }
 const api = new Directual.default(config)
 
+
+//example auth user
+api.auth.login("test", "test").then((res)=>{
+      console.log("sessionID" + res.sessionID)
+})
+
 //example read data from API-endpoint with name `test` from structure UsageHistory
 api
   .structure('UsageHistory')
-  .getData('test')
+  .getData('test', {sessionID:"", page:0})
   .then((response) => {
     console.dir(response, { depth: null })
   })
