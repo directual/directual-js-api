@@ -47,7 +47,7 @@ api
 //example for write data {id:1} to Api-endpoint with name `test` from structure UsageHistory
 api
   .structure('UsageHistory')
-  .setData('test', { id: 1 })
+  .setData('test', { id: 1 }, {sessionID:""})
   .then((response) => {
     console.dir(response, { depth: null })
   })

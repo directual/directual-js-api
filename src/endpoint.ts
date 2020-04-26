@@ -36,15 +36,14 @@ export default class Endpoint {
    *
    * @return {Promise}
    */
-  setData(name: string, data?: object, options?: object) {
+  setData(name: string, data?: object, params?: object) {
     return axiosInstance
       .request({
         method: 'POST',
         url: `/good/api/v5/data/${this.name}/${name}`,
         baseURL: `${this.config.apiHost}`,
-        params: this.config,
+        params: { ...this.config, ...params },
         data,
-        ...options,
       })
       .then(extractResponseData);
   }
