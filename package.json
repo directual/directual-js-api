@@ -1,6 +1,6 @@
 {
   "name": "directual-api",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "description": "Directual API for JavaScript",
   "main": "lib/directual.js",
   "typings": "lib/directual.d.ts",
