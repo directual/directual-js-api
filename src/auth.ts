@@ -12,10 +12,12 @@ const axiosInstance = axios.create({
 export class Token {
   sessionID: String;
   username: String;
+  role: String;
 
-  constructor(token: String, username: String) {
+  constructor(token: String, username: String, role: String) {
     this.sessionID = token;
     this.username = username;
+    this.role = role;
   }
 }
 
@@ -52,7 +54,11 @@ export class Auth {
       })
       .then(result => {
         if (result.status == 200 && result.statusText === 'OK' && result.data) {
-          let token = new Token(result.data.result.token, result.data.result.username);
+          let token = new Token(
+            result.data.result.token,
+            result.data.result.username,
+            result.data.result.role,
+          );
           return Promise.resolve(token);
         }
         return Promise.reject(new Error('No reason but to reject'));
