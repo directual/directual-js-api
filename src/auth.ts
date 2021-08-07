@@ -52,7 +52,7 @@ export class Auth {
         },
       })
       .then(result => {
-        if (result.status == 200 && result.statusText === 'OK' && result.data) {
+        if (result.status === 200 && result.data) {
           let token = new Token(
             result.data.result.token,
             result.data.result.username,
