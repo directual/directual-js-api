@@ -5,6 +5,7 @@
     "sourceMap": true,
     "declaration": true,
     "module": "commonjs",
+    "esModuleInterop": true,
     "removeComments": false,
     "strictNullChecks": true,
     "noImplicitAny": true,

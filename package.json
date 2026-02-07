@@ -1,6 +1,6 @@
 {
   "name": "directual-api",
-  "version": "1.2.8",
+  "version": "1.4.1",
   "description": "Directual API for JavaScript",
   "main": "lib/directual.js",
   "typings": "lib/directual.d.ts",
@@ -14,7 +14,7 @@
     "bump:patch": "npm version patch",
     "bump:prerelease": "npm version prerelease",
     "prepublishOnly": "npm run build",
-    "precommit": "lint-staged",
+    "prepare": "husky",
     "test": "jest"
   },
   "repository": {
@@ -32,20 +32,17 @@
   },
   "homepage": "https://github.com/directual/directual-js-api#readme",
   "devDependencies": {
-    "husky": "^0.14.3",
-    "lint-staged": "10.1.7",
-    "prettier": "1.11.1",
-    "typescript": "2.7.2"
+    "@types/lodash": "4.17.23",
+    "husky": "9.1.7",
+    "lint-staged": "16.2.7",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3"
   },
   "dependencies": {
-    "@types/lodash": "4.14.104",
-    "axios": "0.21.1",
-    "lodash": "4.17.21"
+    "axios": "1.13.4",
+    "lodash": "4.17.23"
   },
   "lint-staged": {
-    "*.ts": [
-      "prettier --write",
-      "git add"
-    ]
+    "*.ts": "prettier --write"
   }
 }
