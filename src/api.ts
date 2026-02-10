@@ -3,6 +3,7 @@ import { extractResponseData } from './utils';
 import Endpoint from './endpoint';
 import { Auth } from './auth';
 const defaultApiHost = 'https://api.directual.com';
+const defaultStreamApiHost = 'https://api.alfa.directual.com';
 
 export class Config {
   config: any;
@@ -29,6 +30,9 @@ class Api {
     this.config = config;
     if (!config.apiHost) {
       this.config.apiHost = defaultApiHost;
+    }
+    if (!config.streamApiHost) {
+      this.config.streamApiHost = defaultStreamApiHost;
     }
     this.auth = new Auth(config);
   }
