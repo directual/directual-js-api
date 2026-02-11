@@ -28,10 +28,10 @@ class Api {
 
   constructor(config: any) {
     this.config = config;
-    if (!config.apiHost) {
+    if (config.apiHost === undefined) {
       this.config.apiHost = defaultApiHost;
     }
-    if (!config.streamApiHost) {
+    if (config.streamApiHost === undefined) {
       this.config.streamApiHost = defaultStreamApiHost;
     }
     this.auth = new Auth(config);

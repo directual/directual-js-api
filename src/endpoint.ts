@@ -170,7 +170,9 @@ export default class Endpoint {
       }
     });
 
-    return `${this.config.streamApiHost}/good/api/v5/stream/${this.name}/${method}?${query.toString()}`;
+    // Обрезаем trailing слэши, чтобы '' и '/' давали same-origin путь
+    const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
+    return `${host}/good/api/v5/stream/${this.name}/${method}?${query.toString()}`;
   }
 
   /**
