@@ -168,6 +168,92 @@ stream.promise.then(() => {
 });
 ```
 
+### Proxying streams via Next.js Route Handlers
+
+If you proxy stream requests through Next.js Route Handlers, keep in mind that `initStream` uses two different request types through different paths:
+
+- **Init** (`POST .../stream/init/{structure}/{method}`) — regular JSON request, returns `{ streamId, status }`
+- **Subscribe** (`GET .../stream/subscribe/{streamId}`) — SSE stream
+
+These go through different base paths, so you need **two separate Route Handlers**. With `streamApiHost: '/api'` the resulting Next.js paths are:
+- `/api/good/api/v5/stream/...` (init)
+- `/api/api/v5/stream/subscribe/...` (subscribe)
+
+> **Gotcha:** Don't hardcode `Accept: text/event-stream` for all requests — the init phase will break with "Struct not found". Forward the original headers instead.
+
+#### Init Route Handler
+
+```ts
+// app/api/good/api/v5/stream/[...path]/route.ts
+const STREAM_HOST = 'https://api.alfa.directual.com';
+
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ path: string[] }> }
+) {
+  const { path } = await context.params;
+  const url = new URL(request.url);
+  const searchParams = url.searchParams.toString();
+  const targetUrl = `${STREAM_HOST}/good/api/v5/stream/${path.join('/')}${searchParams ? `?${searchParams}` : ''}`;
+  const body = await request.text();
+
+  const headers: Record<string, string> = {
+    'Content-Type': request.headers.get('Content-Type') || 'application/json',
+  };
+  const accept = request.headers.get('Accept');
+  if (accept) {
+    headers['Accept'] = accept;
+  }
+
+  const response = await fetch(targetUrl, { method: 'POST', headers, body });
+
+  if (!response.ok) {
+    return new Response(await response.text(), { status: response.status });
+  }
+
+  const contentType = response.headers.get('Content-Type') || 'application/octet-stream';
+  const responseHeaders: Record<string, string> = { 'Content-Type': contentType };
+
+  if (contentType.includes('text/event-stream')) {
+    responseHeaders['Cache-Control'] = 'no-cache';
+    responseHeaders['Connection'] = 'keep-alive';
+  }
+
+  return new Response(response.body, { headers: responseHeaders });
+}
+```
+
+#### Subscribe Route Handler
+
+```ts
+// app/api/api/v5/stream/subscribe/[streamId]/route.ts
+const STREAM_HOST = 'https://api.alfa.directual.com';
+
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ streamId: string }> }
+) {
+  const { streamId } = await context.params;
+
+  const response = await fetch(
+    `${STREAM_HOST}/api/v5/stream/subscribe/${streamId}`,
+    { headers: { Accept: 'text/event-stream' } }
+  );
+
+  if (!response.ok) {
+    return new Response(await response.text(), { status: response.status });
+  }
+
+  return new Response(response.body, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  });
+}
+```
+
 #### Types
 
 ```ts
