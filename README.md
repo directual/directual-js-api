@@ -76,11 +76,66 @@ api
 
 ### Streaming (SSE)
 
-Streaming methods use Server-Sent Events over HTTP.  
-Endpoint URL: `/good/api/v5/stream/{structure}/{method}` (instead of `/data/`).  
 Default stream host: `https://api.alfa.directual.com` (override via `streamApiHost` config).
 
-#### POST stream (`setStream`)
+#### Init/Subscribe streaming (`initStream`) — recommended
+
+Two-phase mechanism: POST to init returns a `streamId`, then we subscribe to the SSE stream.
+
+- Init: `POST /good/api/v5/stream/init/{structure}/{method}`
+- Subscribe: `GET /api/v5/stream/subscribe/{streamId}`
+
+```js
+const stream = api
+  .structure('ai_actions')
+  .initStream(
+    'platformAIActions',
+    { prompt: 'hello' },       // request body
+    { sessionID: '...' },      // query params
+    {
+      onData: (data, event) => {
+        console.log(event, data);
+      },
+      onError: (error) => {
+        console.error('stream error:', error);
+      },
+      onComplete: () => {
+        console.log('stream finished');
+      },
+    },
+  );
+
+// abort the stream at any time
+stream.abort();
+
+// await completion
+stream.promise.then(() => console.log('done'));
+
+// get the streamId (resolves after init completes)
+stream.streamId.then(id => console.log('stream id:', id));
+```
+
+You can also use the two phases separately:
+
+```js
+// Phase 1: init — get streamId
+const streamId = await api
+  .structure('ai_actions')
+  .streamInit('platformAIActions', { prompt: 'hello' }, { sessionID: '...' });
+
+// Phase 2: subscribe — read SSE events
+const stream = api
+  .structure('ai_actions')
+  .streamSubscribe(streamId, {
+    onData: (data, event) => console.log(event, data),
+    onComplete: () => console.log('done'),
+  });
+```
+
+#### Legacy: single-request streaming (`setStream`)
+
+Single POST where the response body IS the SSE stream.  
+Endpoint: `POST /good/api/v5/stream/{structure}/{method}`.
 
 ```js
 const stream = api
@@ -116,7 +171,7 @@ stream.promise.then(() => {
 #### Types
 
 ```ts
-import { StreamCallbacks, StreamResponse } from 'directual-api';
+import { InitStreamResponse, StreamCallbacks, StreamResponse } from 'directual-api';
 
 interface StreamCallbacks {
   onData: (data: any, event: string) => void;
@@ -127,5 +182,11 @@ interface StreamCallbacks {
 interface StreamResponse {
   abort: () => void;
   promise: Promise<void>;
+}
+
+interface InitStreamResponse {
+  abort: () => void;
+  promise: Promise<void>;
+  streamId: Promise<string>;
 }
 ```

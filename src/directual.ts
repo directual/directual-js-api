@@ -14,7 +14,7 @@ export {
   stringToArray,
 } from './utils';
 
-export { StreamCallbacks, StreamResponse } from './endpoint';
+export { InitStreamResponse, StreamCallbacks, StreamResponse } from './endpoint';
 
 export { EventType } from './events/EventType';
 export { KeyCodes } from './events/KeyCodes';

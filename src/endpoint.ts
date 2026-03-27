@@ -22,6 +22,13 @@ export interface StreamResponse {
   promise: Promise<void>;
 }
 
+/** Управление стримом через init/subscribe: abort + промис + streamId */
+export interface InitStreamResponse {
+  abort: () => void;
+  promise: Promise<void>;
+  streamId: Promise<string>;
+}
+
 /** Распарсенное SSE-событие */
 interface SSEEvent {
   type: string;
@@ -158,6 +165,146 @@ export default class Endpoint {
   }
 
   /**
+   * Инициализация стрима (фаза 1 нового механизма).
+   * POST на /good/api/v5/stream/init/{структура}/{метод} → streamId
+   */
+  async streamInit(name: string, data?: object, params?: object): Promise<string> {
+    const url = this.buildStreamInitUrl(name, params);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    if (typeof result === 'string') return result;
+    if (result && result.streamId) return result.streamId;
+    throw new Error('streamInit: streamId не найден в ответе');
+  }
+
+  /**
+   * Подписка на стрим по streamId (фаза 2 нового механизма).
+   * GET на /api/v5/stream/subscribe/{streamId}
+   */
+  streamSubscribe(streamId: string, callbacks?: StreamCallbacks): StreamResponse {
+    const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
+    const url = `${host}/api/v5/stream/subscribe/${streamId}`;
+    const controller = new AbortController();
+
+    const promise = this.processStream(
+      url,
+      {
+        method: 'GET',
+        headers: { Accept: 'text/event-stream' },
+        signal: controller.signal,
+      },
+      callbacks,
+    );
+
+    return { abort: () => controller.abort(), promise };
+  }
+
+  /**
+   * Стрим через init/subscribe (новый механизм Directual).
+   * 1. POST на /good/api/v5/stream/init/{структура}/{метод} → streamId
+   * 2. GET на /api/v5/stream/subscribe/{streamId} → SSE-стрим
+   *
+   * Объединяет обе фазы, API коллбэков идентичен setStream.
+   */
+  initStream(
+    name: string,
+    data?: object,
+    params?: object,
+    callbacks?: StreamCallbacks,
+  ): InitStreamResponse {
+    const controller = new AbortController();
+    let resolveStreamId!: (id: string) => void;
+    let rejectStreamId!: (err: Error) => void;
+
+    const streamIdPromise = new Promise<string>((resolve, reject) => {
+      resolveStreamId = resolve;
+      rejectStreamId = reject;
+    });
+
+    // Глушим unhandled rejection если никто не слушает streamId
+    streamIdPromise.catch(() => {});
+
+    const promise = (async () => {
+      const initUrl = this.buildStreamInitUrl(name, params);
+
+      let initResponse: Response;
+      try {
+        initResponse = await fetch(initUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: data ? JSON.stringify(data) : undefined,
+          signal: controller.signal,
+        });
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          rejectStreamId(new Error('Aborted'));
+          return;
+        }
+        const err = error instanceof Error ? error : new Error(String(error));
+        rejectStreamId(err);
+        if (callbacks && callbacks.onError) callbacks.onError(err);
+        throw err;
+      }
+
+      if (!initResponse.ok) {
+        const err = new Error(`HTTP ${initResponse.status}: ${initResponse.statusText}`);
+        rejectStreamId(err);
+        if (callbacks && callbacks.onError) callbacks.onError(err);
+        throw err;
+      }
+
+      let result: any;
+      try {
+        result = await initResponse.json();
+      } catch (error) {
+        const err = new Error('streamInit: невалидный JSON в ответе');
+        rejectStreamId(err);
+        if (callbacks && callbacks.onError) callbacks.onError(err);
+        throw err;
+      }
+
+      const streamId = typeof result === 'string' ? result : result && result.streamId;
+      if (!streamId) {
+        const err = new Error('streamInit: streamId не найден в ответе');
+        rejectStreamId(err);
+        if (callbacks && callbacks.onError) callbacks.onError(err);
+        throw err;
+      }
+
+      resolveStreamId(streamId);
+
+      const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
+      const subscribeUrl = `${host}/api/v5/stream/subscribe/${streamId}`;
+
+      await this.processStream(
+        subscribeUrl,
+        {
+          method: 'GET',
+          headers: { Accept: 'text/event-stream' },
+          signal: controller.signal,
+        },
+        callbacks,
+      );
+    })();
+
+    return {
+      abort: () => controller.abort(),
+      promise,
+      streamId: streamIdPromise,
+    };
+  }
+
+  /**
    * Собирает URL для стрим-эндпоинта с query-параметрами
    */
   private buildStreamUrl(method: string, params?: object): string {
@@ -173,6 +320,23 @@ export default class Endpoint {
     // Обрезаем trailing слэши, чтобы '' и '/' давали same-origin путь
     const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
     return `${host}/good/api/v5/stream/${this.name}/${method}?${query.toString()}`;
+  }
+
+  /**
+   * URL для init-эндпоинта: /good/api/v5/stream/init/{структура}/{метод}
+   */
+  private buildStreamInitUrl(method: string, params?: object): string {
+    const allParams: Record<string, any> = { ...this.config, ...params };
+    const query = new URLSearchParams();
+
+    Object.keys(allParams).forEach(key => {
+      if (allParams[key] !== undefined && allParams[key] !== null) {
+        query.append(key, String(allParams[key]));
+      }
+    });
+
+    const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
+    return `${host}/good/api/v5/stream/init/${this.name}/${method}?${query.toString()}`;
   }
 
   /**
