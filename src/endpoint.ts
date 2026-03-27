@@ -94,6 +94,9 @@ function parseSSEBuffer(buffer: string): { events: SSEEvent[]; remaining: string
   return { events, remaining };
 }
 
+// Ключи конфига, которые не должны попадать в query-параметры
+const INTERNAL_CONFIG_KEYS = ['apiHost', 'streamApiHost'];
+
 export default class Endpoint {
   name: string;
   config: any;
@@ -312,6 +315,7 @@ export default class Endpoint {
     const query = new URLSearchParams();
 
     Object.keys(allParams).forEach(key => {
+      if (INTERNAL_CONFIG_KEYS.indexOf(key) !== -1) return;
       if (allParams[key] !== undefined && allParams[key] !== null) {
         query.append(key, String(allParams[key]));
       }
@@ -330,6 +334,7 @@ export default class Endpoint {
     const query = new URLSearchParams();
 
     Object.keys(allParams).forEach(key => {
+      if (INTERNAL_CONFIG_KEYS.indexOf(key) !== -1) return;
       if (allParams[key] !== undefined && allParams[key] !== null) {
         query.append(key, String(allParams[key]));
       }
