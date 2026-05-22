@@ -98,7 +98,7 @@ function parseSSEBuffer(buffer: string): { events: SSEEvent[]; remaining: string
 const INTERNAL_CONFIG_KEYS = ['apiHost', 'streamApiHost'];
 
 export default class Endpoint {
-  name: string;
+  name!: string;
   config: any;
 
   /**
