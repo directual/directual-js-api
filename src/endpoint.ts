@@ -95,7 +95,7 @@ function parseSSEBuffer(buffer: string): { events: SSEEvent[]; remaining: string
 }
 
 // Ключи конфига, которые не должны попадать в query-параметры
-const INTERNAL_CONFIG_KEYS = ['apiHost', 'streamApiHost'];
+const INTERNAL_CONFIG_KEYS = ['apiHost', 'streamApiHost', 'apiVersion', 'authApiVersion'];
 
 export default class Endpoint {
   name!: string;
@@ -110,7 +110,7 @@ export default class Endpoint {
     return axiosInstance
       .request({
         method: 'GET',
-        url: `/good/api/v5/data/${this.name}/${name}`,
+        url: `/good/api/${this.config.apiVersion}/data/${this.name}/${name}`,
         baseURL: `${this.config.apiHost}`,
         params: { ...this.config, ...params },
         ...options,
@@ -127,7 +127,7 @@ export default class Endpoint {
     return axiosInstance
       .request({
         method: 'POST',
-        url: `/good/api/v5/data/${this.name}/${name}`,
+        url: `/good/api/${this.config.apiVersion}/data/${this.name}/${name}`,
         baseURL: `${this.config.apiHost}`,
         params: { ...this.config, ...params },
         data,
@@ -137,7 +137,7 @@ export default class Endpoint {
 
   /**
    * POST-стрим через SSE.
-   * URL: /good/api/v5/stream/{структура}/{метод}
+   * URL: /good/api/{apiVersion}/stream/{структура}/{метод}
    *
    * @return {StreamResponse} — abort() для отмены, promise для ожидания завершения
    */
@@ -169,7 +169,7 @@ export default class Endpoint {
 
   /**
    * Инициализация стрима (фаза 1 нового механизма).
-   * POST на /good/api/v5/stream/init/{структура}/{метод} → streamId
+   * POST на /good/api/{apiVersion}/stream/init/{структура}/{метод} → streamId
    */
   async streamInit(name: string, data?: object, params?: object): Promise<string> {
     const url = this.buildStreamInitUrl(name, params);
@@ -192,11 +192,11 @@ export default class Endpoint {
 
   /**
    * Подписка на стрим по streamId (фаза 2 нового механизма).
-   * GET на /api/v5/stream/subscribe/{streamId}
+   * GET на /api/{apiVersion}/stream/subscribe/{streamId}
    */
   streamSubscribe(streamId: string, callbacks?: StreamCallbacks): StreamResponse {
     const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
-    const url = `${host}/api/v5/stream/subscribe/${streamId}`;
+    const url = `${host}/api/${this.config.apiVersion}/stream/subscribe/${streamId}`;
     const controller = new AbortController();
 
     const promise = this.processStream(
@@ -214,8 +214,8 @@ export default class Endpoint {
 
   /**
    * Стрим через init/subscribe (новый механизм Directual).
-   * 1. POST на /good/api/v5/stream/init/{структура}/{метод} → streamId
-   * 2. GET на /api/v5/stream/subscribe/{streamId} → SSE-стрим
+   * 1. POST на /good/api/{apiVersion}/stream/init/{структура}/{метод} → streamId
+   * 2. GET на /api/{apiVersion}/stream/subscribe/{streamId} → SSE-стрим
    *
    * Объединяет обе фазы, API коллбэков идентичен setStream.
    */
@@ -287,7 +287,7 @@ export default class Endpoint {
       resolveStreamId(streamId);
 
       const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
-      const subscribeUrl = `${host}/api/v5/stream/subscribe/${streamId}`;
+      const subscribeUrl = `${host}/api/${this.config.apiVersion}/stream/subscribe/${streamId}`;
 
       await this.processStream(
         subscribeUrl,
@@ -323,11 +323,11 @@ export default class Endpoint {
 
     // Обрезаем trailing слэши, чтобы '' и '/' давали same-origin путь
     const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
-    return `${host}/good/api/v5/stream/${this.name}/${method}?${query.toString()}`;
+    return `${host}/good/api/${this.config.apiVersion}/stream/${this.name}/${method}?${query.toString()}`;
   }
 
   /**
-   * URL для init-эндпоинта: /good/api/v5/stream/init/{структура}/{метод}
+   * URL для init-эндпоинта: /good/api/{apiVersion}/stream/init/{структура}/{метод}
    */
   private buildStreamInitUrl(method: string, params?: object): string {
     const allParams: Record<string, any> = { ...this.config, ...params };
@@ -341,7 +341,7 @@ export default class Endpoint {
     });
 
     const host = (this.config.streamApiHost || '').replace(/\/+$/, '');
-    return `${host}/good/api/v5/stream/init/${this.name}/${method}?${query.toString()}`;
+    return `${host}/good/api/${this.config.apiVersion}/stream/init/${this.name}/${method}?${query.toString()}`;
   }
 
   /**

@@ -4,6 +4,8 @@ import Endpoint from './endpoint';
 import { Auth } from './auth';
 const defaultApiHost = 'https://api.directual.com';
 const defaultStreamApiHost = 'https://api.alfa.directual.com';
+const defaultApiVersion = 'v5';
+const defaultAuthApiVersion = 'v4';
 
 export class Config {
   config: any;
@@ -11,6 +13,12 @@ export class Config {
   constructor(config: any) {
     this.config = config;
   }
+}
+
+export interface StructureOptions {
+  apiVersion?: string;
+  apiHost?: string;
+  streamApiHost?: string;
 }
 
 export class Structure extends Endpoint {
@@ -34,11 +42,18 @@ class Api {
     if (config.streamApiHost === undefined) {
       this.config.streamApiHost = defaultStreamApiHost;
     }
+    if (config.apiVersion === undefined) {
+      this.config.apiVersion = defaultApiVersion;
+    }
+    if (config.authApiVersion === undefined) {
+      this.config.authApiVersion = defaultAuthApiVersion;
+    }
     this.auth = new Auth(config);
   }
 
-  structure(name: string) {
-    return new Structure(name, this.config);
+  structure(name: string, options?: StructureOptions) {
+    const config = options ? { ...this.config, ...options } : this.config;
+    return new Structure(name, config);
   }
 }
 

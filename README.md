@@ -14,10 +14,47 @@ const Directual = require('directual-api');
 
 const api = new Directual.default({
   appID: '...',
-  // apiHost: 'https://api.directual.com'           // optional, default
+  // apiHost: 'https://api.directual.com'            // optional, default
   // streamApiHost: 'https://api.alfa.directual.com' // optional, default (streaming is on alfa for now)
+  // apiVersion: 'v5'                                // optional, default — see "API versioning" below
+  // authApiVersion: 'v4'                            // optional, default — see "API versioning" below
 });
 ```
+
+### API versioning
+
+The client targets `v5` for data/stream endpoints and `v4` for `logout`/`check` by default. You can override on two levels:
+
+**Globally** — pass `apiVersion` / `authApiVersion` to the constructor:
+
+```js
+const api = new Directual.default({
+  appID: '...',
+  apiVersion: 'v6',      // applies to data, stream, and login endpoints
+  authApiVersion: 'v5',  // applies to logout and check endpoints
+});
+```
+
+**Per structure** — pass options as the second argument to `structure()`. Overrides shallow-merge over the global config; the original config object is not mutated.
+
+```js
+// One structure already migrated to v6, the rest stay on the global default
+api.structure('NewThing', { apiVersion: 'v6' }).getData('list');
+
+// You can also override apiHost / streamApiHost the same way
+api.structure('Legacy', { apiHost: 'https://legacy.example.com' }).setData('write', { ... });
+```
+
+URL mapping:
+
+| Endpoint                                  | Version source    |
+| ----------------------------------------- | ----------------- |
+| `/good/api/{ver}/data/{structure}/{name}` | `apiVersion`      |
+| `/good/api/{ver}/stream/...`              | `apiVersion`      |
+| `/api/{ver}/stream/subscribe/{streamId}`  | `apiVersion`      |
+| `/good/api/{ver}/auth` (login)            | `apiVersion`      |
+| `/good/api/{ver}/auth/logout`             | `authApiVersion`  |
+| `/good/api/{ver}/auth/check`              | `authApiVersion`  |
 
 ### Authentication
 

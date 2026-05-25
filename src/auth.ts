@@ -41,7 +41,7 @@ export class Auth {
     return axiosInstance
       .request({
         method: 'POST',
-        url: `/good/api/v5/auth`,
+        url: `/good/api/${this.config.apiVersion}/auth`,
         baseURL: `${this.config.apiHost}`,
         params: { ...this.config },
         data: {
@@ -68,7 +68,7 @@ export class Auth {
     return axiosInstance
       .request({
         method: 'GET',
-        url: `/good/api/v4/auth/logout`,
+        url: `/good/api/${this.config.authApiVersion}/auth/logout`,
         baseURL: `${this.config.apiHost}`,
         params: { ...this.config, sessionID },
         data: {
@@ -84,7 +84,7 @@ export class Auth {
     return axiosInstance
       .request({
         method: 'GET',
-        url: `/good/api/v4/auth/check`,
+        url: `/good/api/${this.config.authApiVersion}/auth/check`,
         baseURL: `${this.config.apiHost}`,
         params: { ...this.config, sessionID },
       })
